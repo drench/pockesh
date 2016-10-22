@@ -1,0 +1,48 @@
+#!/bin/sh
+
+. ~/.pocketrc
+
+api_url=https://getpocket.com/v3/get
+
+while true; do
+  case "$1" in
+    --only-unread-items ) state=unread; shift ;;
+    --only-archived-items ) state=archived; shift ;;
+    --include-archived-and-unread ) state=all; shift ;;
+    --only-favorited ) favorite=1; shift ;;
+    --only-unfavorited ) favorite=0; shift ;;
+    --tag ) tag="$2"; shift; shift ;;
+    --only-untagged ) tag="_untagged_"; shift ;;
+    --only-articles ) contentType=article; shift ;;
+    --only-videos ) contentType=video; shift ;;
+    --only-images ) contentType=image; shift ;;
+    --sort-by-title ) sort=title; shift ;;
+    --sort-by-site ) sort=site; shift ;;
+    --sort-newest-first ) sort=newest; shift ;;
+    --sort-oldest-first ) sort=oldest; shift ;;
+    --complete-detail ) detailType=complete; shift ;;
+    --minimal-detail ) detailType=simple; shift ;;
+    --search-term ) search="$2"; shift; shift ;;
+    --search-domain ) domain="$2"; shift; shift ;;
+    --since-epochtime ) since="$2"; shift; shift ;;
+    --maximum-item-count ) count="$2"; shift; shift ;;
+    --item-count-offset ) offset="$2"; shift; shift ;;
+    * ) break ;;
+  esac
+done
+
+curl \
+  --silent \
+  -d consumer_key="$consumer_key" \
+  -d access_token="$access_token" \
+  -d favorite="$favorite" \
+  -d state="$state" \
+  -d tag="$tag" \
+  -d contentType="$contentType" \
+  -d sort="$sort" \
+  -d detailType="$detailType" \
+  -d search="$search" \
+  -d domain="$domain" \
+  -d since="$since" \
+  -d count="$count" \
+  $api_url

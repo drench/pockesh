@@ -1,0 +1,25 @@
+#!/bin/sh
+
+. ~/.pocketrc
+
+api_url=https://getpocket.com/v3/add
+
+while true; do
+  case "$1" in
+    --url ) url="$2"; shift; shift ;;
+    --title ) title="$2"; shift; shift ;;
+    --tags ) tags="$2"; shift; shift ;;
+    --tweet-id ) tweet_id="$2"; shift; shift ;;
+    * ) break ;;
+  esac
+done
+
+curl \
+  --silent \
+  -d consumer_key="$consumer_key" \
+  -d access_token="$access_token" \
+  -d url="$url" \
+  -d title="$title" \
+  -d tags="$tags" \
+  -d tweet_id="$tweet_id" \
+  $api_url

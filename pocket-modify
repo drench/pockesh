@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+. ~/.pocketrc
+
+api_url=https://getpocket.com/v3/send
+
+action_args=()
+
+while true; do
+  case "$1" in
+    --action ) action_args+=(action="$2"); shift; shift ;;
+    --item_id ) action_args+=(item_id="$2"); shift; shift ;;
+    --new_tag ) action_args+=(new_tag="$2"); shift; shift ;;
+    --old_tag ) action_args+=(old_tag="$2"); shift; shift ;;
+    --tags ) action_args+=(tags="$2"); shift; shift ;;
+    --timestamp ) action_args+=(time="$2"); shift; shift ;;
+    * ) break ;;
+  esac
+done
+
+post_params='{"consumer_key": "'$consumer_key'", "access_token": "'$access_token'", "actions": ['$(jo "${action_args[@]}")']}'
+
+json_response=$(
+  curl \
+    --silent \
+    --header "Content-Type: application/json; charset=UTF-8" \
+    --header "X-Accept: application/json" \
+    --data "$post_params" \
+    $api_url
+  )
+
+action_result=$(echo "$json_response" | jq '.action_results[0]')
+status=$(echo "$json_response" | jq '.status')
+
+test "$action_result" = "true" && test "$status" = "1" && exit 0
+
+echo "Pocket error: $json_response" >> /dev/stderr
+exit 111
