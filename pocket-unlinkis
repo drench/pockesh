@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# Linkis links don't get along well with Pocket. They don't get formatted into
+# articles and you need to read them using Linkis' framed-in interface. It's
+# also not straightforward to get the original URL.
+#
+# This script takes all of your unarchived ("unread") linkis.com links, gets
+# their real URLs, and adds them to Pocket while archiving the items containing
+# the old linkis.com URLs.
+
+og_url() {
+  grep '<meta property="og:url" ' $1 | sed -E 's/^.+content="(.+)".+$/\1/'
+}
+
+linkis_json() {
+  pocket-get --search-domain linkis.com --only-unread-items
+}
+
+extract_fields_from_json() {
+  jq --raw-output '.list | .[] | .item_id, .resolved_url'
+}
+
+linkis_json | extract_fields_from_json | while read item_id; do
+  read resolved_url
+
+  original_url=$(curl --silent $resolved_url | og_url)
+
+  if [ -z "$original_url" ]; then
+    echo "Unable to extract the og_url from $resolved_url; skipping."
+  else
+    echo "Adding $original_url to pocket..."
+    pocket-add --url $original_url &&
+      echo "Archiving the old linkis item $item_id..."
+      pocket-modify --action archive --item_id $item_id
+  fi
+done
